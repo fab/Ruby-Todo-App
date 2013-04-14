@@ -16,24 +16,20 @@ class List
     end
   end
 
-  def add(task)
+  def add!(task)
     list << Task.new(@id, task)
-    write_file
   end
 
-  def delete(id)
+  def delete!(id)
     list.delete_if { |task_obj| task_obj.id == id }
-    write_file
   end
 
-  def complete_task(id)
+  def complete!(id)
     list[id - 1].completed = 'X'
-    write_file
   end
 
-  def uncomplete_task(id)
+  def uncomplete!(id)
     list[id - 1].completed = ' '
-    write_file
   end
 
   def write_file
@@ -69,37 +65,24 @@ if ARGV.any?
   command = ARGV[0]
   option = ARGV[1..-1]
   task_id = option[0].to_i
-  
+
   if command == 'list'
     puts todo_list.list
   elsif command == 'add'
-    todo_list.add(option.join(' '))
+    todo_list.add!(option.join(' '))
     puts "Added #{option.join(' ')} to your TODO list."
   elsif command == 'delete'
-    todo_list.delete(task_id)
+    todo_list.delete!(task_id)
     puts "Deleted task #{task_id} from your TODO list."
   elsif command == 'complete'
-    todo_list.complete_task(task_id)
+    todo_list.complete!(task_id)
     puts "Completed task #{task_id} on your TODO list."
   elsif command == 'uncomplete'
-    todo_list.uncomplete_task(task_id)
+    todo_list.uncomplete!(task_id)
     puts "Uncompleted task #{task_id} on your TODO list."  
   end
-  abort # if a ARGV is supplied the code shouldn't do anything else
+  todo_list.write_file
+  abort
 end
 
-# todo_list = List.new
-# todo_list.load_list('todo.csv')
-# puts todo_list.list
 
-# todo_list.complete_task(5)
-# puts todo_list.list
-
-# todo_list.add("Example task")
-# puts todo_list.list
-
-# todo_list.delete(6)
-# puts todo_list.list
-
-# todo_list.uncomplete_task(5)
-# puts todo_list.list
