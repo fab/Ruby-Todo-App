@@ -1,10 +1,11 @@
 require 'csv'
 
-class List
+class ListModel
   attr_accessor :list
 
-  def initialize
+  def initialize(filename)
     @list = []
+    load_list(filename)
   end
 
   def load_list(filename)
@@ -39,6 +40,65 @@ class List
   end
 end
 
+class ListController
+  attr_reader :model, :view, :command, :option, :task_id
+
+  def initialize(filename, command, option)
+    system "clear"
+    @model = ListModel.new(filename)
+    @view = ListView.new
+    @command = command
+    @option = option
+    @task_id = option[0].to_i
+    parse_option
+  end
+
+  private
+
+  def parse_option
+    case command
+    when 'list'
+      view.display_tasks(model.list)
+    when 'add'
+      model.add!(option.join(' '))
+      view.display_added_task(option.join(' '))
+    when 'delete'
+      model.delete!(task_id)
+      view.display_deleted_task(task_id)
+    when 'complete'
+      model.complete!(task_id)
+      view.display_completed_task(task_id)
+    when 'uncomplete'
+      model.uncomplete!(task_id)
+      view.display_uncompleted_task(task_id)
+    end
+    model.write_file
+  end
+end
+
+class ListView
+  def display_tasks(todo_list)
+    puts todo_list
+  end
+
+  def display_added_task(option)
+    puts "Added #{option} to your TODO list."
+  end
+
+  def display_deleted_task(task_id)
+    puts "Deleted task #{task_id} from your TODO list."
+  end
+
+  def display_completed_task(task_id)
+    puts "Completed task #{task_id} on your TODO list."
+  end
+
+  def display_uncompleted_task(task_id)
+    puts "Uncompleted task #{task_id} on your TODO list."
+  end
+end
+
+
 class Task
   attr_accessor :task, :id, :completed
 
@@ -55,34 +115,11 @@ class Task
   def to_s
     self.display_for_list
   end
-
 end
 
-if ARGV.any?
-  system "clear"
-  todo_list = List.new
-  todo_list.load_list('todo.csv')
-  command = ARGV[0]
-  option = ARGV[1..-1]
-  task_id = option[0].to_i
-
-  if command == 'list'
-    puts todo_list.list
-  elsif command == 'add'
-    todo_list.add!(option.join(' '))
-    puts "Added #{option.join(' ')} to your TODO list."
-  elsif command == 'delete'
-    todo_list.delete!(task_id)
-    puts "Deleted task #{task_id} from your TODO list."
-  elsif command == 'complete'
-    todo_list.complete!(task_id)
-    puts "Completed task #{task_id} on your TODO list."
-  elsif command == 'uncomplete'
-    todo_list.uncomplete!(task_id)
-    puts "Uncompleted task #{task_id} on your TODO list."  
-  end
-  todo_list.write_file
-  abort
+def main(filename, command, option)
+  ListController.new(filename, command, option)
 end
 
+main('todo.csv', ARGV[0], ARGV[1..-1])
 
